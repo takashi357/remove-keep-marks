@@ -31,9 +31,27 @@ pandoc など、Word のスタイルを引き継いで docx を作る道具で�
 
 Windows と Microsoft Word が必要。
 
+### 1. ダウンロード
+
+このリポジトリのページで、緑の「Code」→「Download ZIP」を選ぶ。ダウンロードした ZIP を展開する。
+
+### 2. 実行前の手当て
+
+インターネットからダウンロードしたファイルには「インターネットから来たファイル」の印が付いている。展開したフォルダで PowerShell を開き、印を外す。
+
 ```powershell
-.\Remove-KeepMarks.ps1 -Path .\document.docx
+Get-ChildItem -Recurse | Unblock-File
 ```
+
+### 3. 実行
+
+Windows の初期設定では PowerShell スクリプトの実行が止められている。次のように `-ExecutionPolicy Bypass` を付けて実行する。この指定はその 1 回の実行だけに効き、PC の設定は変えない。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Remove-KeepMarks.ps1 -Path .\document.docx
+```
+
+### 補足
 
 - 元のファイルは上書きしない。同じフォルダに `document_nomarks.docx` を作る。保存先は `-OutPath` で変えられる。
 - Word を画面に出さずに別途起動して処理する。処理する文書は Word で閉じておく。
@@ -41,7 +59,15 @@ Windows と Microsoft Word が必要。
   1. 段落スタイルとリンクスタイルから、上の 3 つの設定を外す
   2. 段落ごとに付いた同じ設定を外す
   3. ページを組み直し、見出し（本文以外のアウトラインレベルの段落）が次の段落と別ページに分かれていないかを確認する
-- 取り残された見出しがあれば、ページ番号と見出しを一覧にして終了コード 2 で終わる。Word で開き、その見出しの前で改ページするなどして直す。
+- 取り残された見出しがあれば、ページ番号と見出しを一覧にする。Word で開き、その見出しの前で改ページするなどして直す。
+
+### 終了コード
+
+| 終了コード | 意味 | 保存 |
+| --- | --- | --- |
+| 0 | 問題なし。取り残された見出しはない | した |
+| 1 | 失敗。ファイルが見つからない、保存先が元ファイルと同じ、Word を起動できない、文書を開けない、保存できないなど。「エラー:」で始まる理由を表示する | 途中で止まるので、ふつうはしていない |
+| 2 | 保存したが、ページ最下部に取り残された見出しがある | した |
 
 ## 試したこと・わかっていないこと
 
@@ -59,7 +85,13 @@ Windows と Microsoft Word が必要。
 
 ## 動作確認
 
-2026-10-15、Windows 11 と Microsoft Word（デスクトップ版）で実行した。
+2026-10-15 に次の環境で実行した。
+
+| 項目 | 値 |
+| --- | --- |
+| OS | Windows 11 Pro（10.0.26200） |
+| Word | Microsoft 365 の Word（64 ビット）。`Application.Version` = 16.0、`Application.Build` = 16.0.20430 |
+| PowerShell | Windows PowerShell 5.1.26100.9711（`$PSVersionTable.PSVersion`） |
 
 **試験用の文書（`examples/example-keep-marks.docx` の写し）**
 
@@ -73,3 +105,13 @@ Windows と Microsoft Word が必要。
 - 保存後の docx の中身（document.xml と styles.xml）に、3 つの設定は 1 つも残っていなかった。
 - ページ最下部に取り残された見出しはなく、終了コードは 0 だった。
 - 元のファイルは変わっていなかった（ハッシュ値で照合）。
+
+**失敗したとき**
+
+- 存在しないファイル、保存先が元ファイルと同じ、docx でない中身のファイルのいずれも、「エラー:」と理由を表示して終了コード 1 で終わった。docx を開けなかったときも、Word は終了していた。
+- `-File` で実行したときと、PowerShell の中から `&` で呼んだときのどちらでも、終了コードは 1 だった。
+- Word を起動できない場合は試していない（Word の起動で例外が出れば、同じく終了コード 1 で終わる作り）。
+
+## ライセンス
+
+ライセンス：MIT（[LICENSE](LICENSE)）

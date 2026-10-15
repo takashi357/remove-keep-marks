@@ -16,6 +16,9 @@
 .PARAMETER OutPath
   保存先。省略時は元ファイルと同じフォルダに「<元の名前>_nomarks.docx」で保存する。
 
+.OUTPUTS
+  終了コード 0：問題なし。1：失敗（途中で止まった）。2：保存したが、取り残された見出しがある。
+
 .EXAMPLE
   .\Remove-KeepMarks.ps1 -Path .\resume.docx
 #>
@@ -25,6 +28,12 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# 失敗したとき（ファイルが見つからない、Word を起動できない、開けない、保存できないなど）は終了コード 1
+trap {
+  [Console]::Error.WriteLine("エラー: $($_.Exception.Message)")
+  exit 1
+}
 
 $src = (Resolve-Path -LiteralPath $Path).Path
 if (-not $OutPath) {
