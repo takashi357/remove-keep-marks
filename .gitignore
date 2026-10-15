@@ -1,0 +1,8 @@
+# 個人情報を含む文書は載せない
+*.docx
+*.doc
+*.pdf
+~$*
+
+# 例外：個人情報を含まない試験用の文書
+!examples/example-keep-marks.docx
